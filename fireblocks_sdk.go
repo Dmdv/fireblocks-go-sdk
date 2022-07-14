@@ -51,7 +51,7 @@ func CreateSDK(apikey, privateKey string, baseURL string, opts ...func(o *SDKOpt
 	}
 
 	if opt.client == nil {
-		opt.client = NewAPIClient()
+		opt.client = NewAPIClient(opt.auth)
 	}
 
 	sdk := &FireblocksSDK{

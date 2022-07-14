@@ -3,7 +3,6 @@ package fireblocksdk
 import (
 	"crypto/sha256"
 	"encoding/hex"
-	"encoding/json"
 	"fmt"
 	"time"
 
@@ -27,7 +26,7 @@ func DefaultTimeProvider() *TimeProvider {
 }
 
 type IAuthProvider interface {
-	SignJwt(path string, bodyJson interface{}) (string, error)
+	SignJwt(path string, bodyJson []byte) (string, error)
 	GetApiKey() string
 }
 
@@ -59,13 +58,8 @@ func NewAuthProvider(apiKey, privateKey string, configs ...func(*AuthProvider) e
 }
 
 // SignJwt Creates token using path and payload
-func (ap *AuthProvider) SignJwt(path string, bodyJson interface{}) (string, error) {
-	bodyBytes, err := json.Marshal(bodyJson)
-	if err != nil {
-		return "", errors.Wrap(err, "failed to marshal body")
-	}
-
-	hash, err := hashBody(bodyBytes)
+func (ap *AuthProvider) SignJwt(path string, bodyJson []byte) (string, error) {
+	hash, err := hashBody(bodyJson)
 	if err != nil {
 		return "", err
 	}
