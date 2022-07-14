@@ -11,6 +11,21 @@ import (
 	"github.com/pkg/errors"
 )
 
+type ITimeProvider interface {
+	Now() time.Time
+}
+
+type TimeProvider struct {
+}
+
+func (tp *TimeProvider) Now() time.Time {
+	return time.Now()
+}
+
+func DefaultTimeProvider() *TimeProvider {
+	return &TimeProvider{}
+}
+
 type IAuthProvider interface {
 	SignJwt(path string, bodyJson interface{}) (string, error)
 	GetApiKey() string
@@ -18,11 +33,28 @@ type IAuthProvider interface {
 
 type AuthProvider struct {
 	apiKey, privateKey string
+	timeProvider       ITimeProvider
+}
+
+func WithTimeProvider(tp ITimeProvider) func(c *AuthProvider) error {
+	return func(c *AuthProvider) error {
+		c.timeProvider = tp
+		return nil
+	}
 }
 
 // NewAuthProvider Creates signer using api key and private key from config
-func NewAuthProvider(apiKey, privateKey string) *AuthProvider {
-	return &AuthProvider{apiKey, privateKey}
+func NewAuthProvider(apiKey, privateKey string, configs ...func(*AuthProvider) error) (*AuthProvider, error) {
+	auth := &AuthProvider{apiKey, privateKey, DefaultTimeProvider()}
+
+	for _, conf := range configs {
+		err := conf(auth)
+		if err != nil {
+			return nil, errors.Wrap(err, "invalid/unsupported options.")
+		}
+	}
+
+	return auth, nil
 }
 
 // SignJwt Creates token using path and payload
@@ -37,7 +69,7 @@ func (ap *AuthProvider) SignJwt(path string, bodyJson interface{}) (string, erro
 		return "", err
 	}
 
-	now := time.Now()
+	now := ap.timeProvider.Now()
 	exp := now.Add(10 * time.Second)
 
 	signJwt, err := ap.signJwt(jwt.MapClaims{
