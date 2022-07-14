@@ -39,6 +39,7 @@ type AuthProvider struct {
 func WithTimeProvider(tp ITimeProvider) func(c *AuthProvider) error {
 	return func(c *AuthProvider) error {
 		c.timeProvider = tp
+
 		return nil
 	}
 }

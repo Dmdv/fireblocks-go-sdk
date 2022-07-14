@@ -1,11 +1,11 @@
-package fireblocksdk
+package fireblocksdk_test
 
 import (
+	sdk "fireblocksdk"
 	"testing"
 	"time"
 
 	"github.com/golang-jwt/jwt"
-
 	"github.com/stretchr/testify/require"
 	"github.com/stretchr/testify/suite"
 )
@@ -21,10 +21,10 @@ func TestAuthTokenSuite(t *testing.T) {
 
 type AuthTokenSuite struct {
 	suite.Suite
-	auth         IAuthProvider
+	auth         sdk.IAuthProvider
 	apiKey       string
 	apiSecretKey string
-	timeProvider ITimeProvider
+	timeProvider sdk.ITimeProvider
 }
 
 type testTimeProvider struct{}
@@ -37,10 +37,10 @@ func (suite *AuthTokenSuite) SetupTest() {
 	suite.apiKey = "apiKey"
 	suite.apiSecretKey = privateKey
 	suite.timeProvider = &testTimeProvider{}
-	suite.auth, _ = NewAuthProvider(
+	suite.auth, _ = sdk.NewAuthProvider(
 		suite.apiKey,
 		suite.apiSecretKey,
-		WithTimeProvider(suite.timeProvider),
+		sdk.WithTimeProvider(suite.timeProvider),
 	)
 }
 
@@ -51,10 +51,10 @@ func (suite *AuthTokenSuite) TestWithCorrectPrivateKey() {
 }
 
 func (suite *AuthTokenSuite) TestMustFailWithNotRSAPrivateKey() {
-	auth, err := NewAuthProvider(
+	auth, err := sdk.NewAuthProvider(
 		suite.apiKey,
 		"fakeKey",
-		WithTimeProvider(suite.timeProvider),
+		sdk.WithTimeProvider(suite.timeProvider),
 	)
 	require.NoError(suite.T(), err)
 
