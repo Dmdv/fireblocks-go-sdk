@@ -2,24 +2,29 @@ package fireblocksdk
 
 import (
 	"time"
-
-	"github.com/hashicorp/go-retryablehttp"
 )
 
 type SDKOptions struct {
 	timeoutMS time.Duration
 	auth      IAuthProvider
+	client    IAPIClient
 }
 
 type FireblocksSDK struct {
 	baseURL string
-	client  *retryablehttp.Client
+	client  IAPIClient
 	auth    IAuthProvider
 }
 
 func WithAuthProvider(auth IAuthProvider) func(o *SDKOptions) {
 	return func(o *SDKOptions) {
 		o.auth = auth
+	}
+}
+
+func WithAPIClient(client IAPIClient) func(o *SDKOptions) {
+	return func(o *SDKOptions) {
+		o.client = client
 	}
 }
 
@@ -45,11 +50,13 @@ func CreateSDK(apikey, privateKey string, baseURL string, opts ...func(o *SDKOpt
 		opt.auth = provider
 	}
 
-	client := retryablehttp.NewClient()
+	if opt.client == nil {
+		opt.client = NewAPIClient()
+	}
 
 	sdk := &FireblocksSDK{
-		client:  client,
 		baseURL: baseURL,
+		client:  opt.client,
 		auth:    opt.auth,
 	}
 
