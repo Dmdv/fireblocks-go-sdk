@@ -90,14 +90,10 @@ func CreateSDK(apikey, privateKey string, baseURL string, opts ...func(o *SDKOpt
 // GetSupportedAssets Gets all assets that are currently supported by Fireblocks
 func (sdk *FireblocksSDK) GetSupportedAssets() (resp []*AssetTypeResponse, err error) {
 	body, status, err := sdk.client.DoGetRequest("/supported_assets")
-	if err != nil || status != http.StatusOK {
-		return nil, errors.Wrap(err, "failed to make request")
+	if err == nil || status == http.StatusOK {
+		err = json.Unmarshal(body, &resp)
+		return
 	}
 
-	err = json.Unmarshal(body, &resp)
-	if err != nil {
-		return nil, errors.Wrap(err, "failed to unmarshal response to AssetTypeResponse")
-	}
-
-	return resp, nil
+	return resp, errors.Wrap(err, "failed to make request")
 }
