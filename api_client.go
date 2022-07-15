@@ -7,27 +7,31 @@ import (
 	"log"
 	"net/http"
 
-	"github.com/pkg/errors"
-
 	"github.com/hashicorp/go-retryablehttp"
+	"github.com/pkg/errors"
+)
+
+const (
+	APIVERSION string = "v1"
 )
 
 type IAPIClient interface {
 	DoPostRequest(path string, body interface{}) ([]byte, int, error)
-	DoGetRequest(path string, body interface{}) ([]byte, int, error)
+	DoGetRequest(path string) ([]byte, int, error)
 	DoPutRequest(path string, body interface{}) ([]byte, int, error)
-	DoDeleteRequest(path string, body interface{}) ([]byte, int, error)
+	DoDeleteRequest(path string) ([]byte, int, error)
 }
 
 type APIClient struct {
 	httpClient *retryablehttp.Client
 	auth       IAuthProvider
+	baseURL    string
 }
 
-func NewAPIClient(auth IAuthProvider) *APIClient {
+func NewAPIClient(auth IAuthProvider, baseURL string) *APIClient {
 	client := retryablehttp.NewClient()
 
-	return &APIClient{client, auth}
+	return &APIClient{client, auth, baseURL}
 }
 
 func (api *APIClient) makeRequest(method, path string, body interface{}) ([]byte, int, error) {
@@ -53,7 +57,7 @@ func (api *APIClient) makeRequest(method, path string, body interface{}) ([]byte
 
 	resp, err := api.httpClient.Do(req)
 	if err != nil {
-		return nil, status, err
+		return nil, status, errors.Wrapf(err, "failed to do request: %s", path)
 	}
 
 	status = resp.StatusCode
@@ -66,15 +70,16 @@ func (api *APIClient) makeRequest(method, path string, body interface{}) ([]byte
 		resp.ContentLength,
 	)
 
-	//goland:noinspection GoUnhandledErrorResult
-	defer resp.Body.Close()
-
 	var result []byte
-	if resp != nil {
+	if resp != nil && resp.Body != nil {
+		//goland:noinspection GoUnhandledErrorResult
+		defer resp.Body.Close()
+
 		responseBody, err := ioutil.ReadAll(resp.Body)
 		if err != nil {
 			return result, status, errors.Wrap(err, "failed to parse response body")
 		}
+
 		result = responseBody
 	}
 
@@ -82,17 +87,26 @@ func (api *APIClient) makeRequest(method, path string, body interface{}) ([]byte
 }
 
 func (api *APIClient) DoPostRequest(path string, body interface{}) ([]byte, int, error) {
-	return api.makeRequest("POST", path, body)
+	path = GetPath(path)
+	return api.makeRequest(http.MethodPost, path, body)
 }
 
-func (api *APIClient) DoGetRequest(path string, body interface{}) ([]byte, int, error) {
-	return api.makeRequest("GET", path, body)
+func (api *APIClient) DoGetRequest(path string) ([]byte, int, error) {
+	query := ""
+	path = GetPath(path)
+	return api.makeRequest(http.MethodGet, path, []byte(query))
 }
 
 func (api *APIClient) DoPutRequest(path string, body interface{}) ([]byte, int, error) {
-	return api.makeRequest("PUT", path, body)
+	path = GetPath(path)
+	return api.makeRequest(http.MethodPut, path, body)
 }
 
-func (api *APIClient) DoDeleteRequest(path string, body interface{}) ([]byte, int, error) {
-	return api.makeRequest("DELETE", path, body)
+func (api *APIClient) DoDeleteRequest(path string) ([]byte, int, error) {
+	path = GetPath(path)
+	return api.makeRequest(http.MethodDelete, path, []byte(""))
+}
+
+func GetPath(path string) string {
+	return fmt.Sprintf(`/%s%s`, APIVERSION, path)
 }

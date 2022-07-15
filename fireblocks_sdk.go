@@ -4,10 +4,30 @@ import (
 	"time"
 )
 
+type PostRequestOption struct {
+	idempotencyKey string
+}
+
+type GetRequestOption struct {
+	paged bool
+}
+
+func WithIdempotencyKey(idempotencyKey string) func(*PostRequestOption) {
+	return func(option *PostRequestOption) {
+		option.idempotencyKey = idempotencyKey
+	}
+}
+
+func WithPaged(paged bool) func(*GetRequestOption) {
+	return func(option *GetRequestOption) {
+		option.paged = paged
+	}
+}
+
 type SDKOptions struct {
-	timeoutMS time.Duration
-	auth      IAuthProvider
-	client    IAPIClient
+	timeoutMilliseconds time.Duration
+	auth                IAuthProvider
+	client              IAPIClient
 }
 
 type FireblocksSDK struct {
@@ -30,7 +50,7 @@ func WithAPIClient(client IAPIClient) func(o *SDKOptions) {
 
 func WithTimout(timeout time.Duration) func(o *SDKOptions) {
 	return func(o *SDKOptions) {
-		o.timeoutMS = timeout
+		o.timeoutMilliseconds = timeout
 	}
 }
 
@@ -51,7 +71,7 @@ func CreateSDK(apikey, privateKey string, baseURL string, opts ...func(o *SDKOpt
 	}
 
 	if opt.client == nil {
-		opt.client = NewAPIClient(opt.auth)
+		opt.client = NewAPIClient(opt.auth, baseURL)
 	}
 
 	sdk := &FireblocksSDK{

@@ -26,7 +26,7 @@ func DefaultTimeProvider() *TimeProvider {
 }
 
 type IAuthProvider interface {
-	SignJwt(path string, bodyJson []byte) (string, error)
+	SignJwt(path string, bodyJSON []byte) (string, error)
 	GetApiKey() string
 }
 
@@ -50,7 +50,7 @@ func NewAuthProvider(apiKey, privateKey string, configs ...func(*AuthProvider) e
 	for _, conf := range configs {
 		err := conf(auth)
 		if err != nil {
-			return nil, errors.Wrap(err, "invalid/unsupported options.")
+			return nil, errors.Wrap(err, "invalid/unsupported options")
 		}
 	}
 
