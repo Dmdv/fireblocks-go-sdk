@@ -53,6 +53,8 @@ func (api *APIClient) makeRequest(method, path string, body interface{}) ([]byte
 		return nil, status, errors.Wrap(err, "failed to sign request")
 	}
 
+	path = fmt.Sprintf("%s%s", api.baseURL, path)
+
 	req, err := retryablehttp.NewRequest(method, path, bodyJSON)
 	if err != nil {
 		return nil, status, errors.Wrap(err, "failed to create request")
@@ -119,5 +121,5 @@ func (api *APIClient) DoDeleteRequest(path string) ([]byte, int, error) {
 }
 
 func (api *APIClient) GetPath(path string) string {
-	return fmt.Sprintf(`%s/%s%s`, api.baseURL, APIVERSION, path)
+	return fmt.Sprintf(`/%s%s`, APIVERSION, path)
 }

@@ -3,7 +3,6 @@ package fireblocksdk
 import (
 	"crypto/sha256"
 	"encoding/hex"
-	"fmt"
 	"time"
 
 	"github.com/golang-jwt/jwt"
@@ -74,7 +73,7 @@ func (ap *AuthProvider) SignJwt(path string, bodyJSON []byte) (string, error) {
 		"now":      now.Unix(),
 		"exp":      exp.Unix(),
 		"sub":      ap.apiKey,
-		"bodyHash": fmt.Sprintf("%x", hash),
+		"bodyHash": hash,
 	})
 
 	return signJwt, err

@@ -49,7 +49,6 @@ func (suite *SDKSuite) TestSupportedAssets() {
 		suite.apiKey,
 		suite.apiSecretKey,
 		suite.baseURL,
-		sdk.WithTimout(111),
 	)
 	require.NoError(suite.T(), err)
 
