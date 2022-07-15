@@ -111,7 +111,7 @@ func (api *APIClient) DoPutRequest(path string, body interface{}) ([]byte, int, 
 
 func (api *APIClient) DoDeleteRequest(path string) ([]byte, int, error) {
 	path = GetPath(path)
-	return api.makeRequest(http.MethodDelete, path, []byte(""))
+	return api.makeRequest(http.MethodDelete, path, nil)
 }
 
 func GetPath(path string) string {
