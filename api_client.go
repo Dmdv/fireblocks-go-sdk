@@ -35,10 +35,17 @@ func NewAPIClient(auth IAuthProvider, baseURL string) *APIClient {
 }
 
 func (api *APIClient) makeRequest(method, path string, body interface{}) ([]byte, int, error) {
-	var status = http.StatusInternalServerError
-	bodyJson, err := json.Marshal(body)
-	if err != nil {
-		return nil, status, errors.Wrap(err, "failed to marshal body")
+	var (
+		status   = http.StatusInternalServerError
+		bodyJson = []byte("")
+	)
+
+	if method != http.MethodGet && body != nil {
+		var err error
+		bodyJson, err = json.Marshal(body)
+		if err != nil {
+			return nil, status, errors.Wrap(err, "failed to marshal body")
+		}
 	}
 
 	jwtToken, err := api.auth.SignJwt(path, bodyJson)
