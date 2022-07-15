@@ -12,7 +12,7 @@ import (
 
 const (
 	// https://phpseclib.com/docs/rsa-keys
-	privateKey = "-----BEGIN PRIVATE KEY-----\nMIIBVAIBADANBgkqhkiG9w0BAQEFAASCAT4wggE6AgEAAkEAqPfgaTEWEP3S9w0t\ngsicURfo+nLW09/0KfOPinhYZ4ouzU+3xC4pSlEp8Ut9FgL0AgqNslNaK34Kq+NZ\njO9DAQIDAQABAkAgkuLEHLaqkWhLgNKagSajeobLS3rPT0Agm0f7k55FXVt743hw\nNgkp98bMNrzy9AQ1mJGbQZGrpr4c8ZAx3aRNAiEAoxK/MgGeeLui385KJ7ZOYktj\nhLBNAB69fKwTZFsUNh0CIQEJQRpFCcydunv2bENcN/oBTRw39E8GNv2pIcNxZkcb\nNQIgbYSzn3Py6AasNj6nEtCfB+i1p3F35TK/87DlPSrmAgkCIQDJLhFoj1gbwRbH\n/bDRPrtlRUDDx44wHoEhSDRdy77eiQIgE6z/k6I+ChN1LLttwX0galITxmAYrOBh\nBVl433tgTTQ=\n-----END PRIVATE KEY-----"
+	privateKey = "-----BEGIN PRIVATE KEY-----\nMIIBVAIBADANBgkqhkiG9w0BAQEFAASCAT4wggE6AgEAAkEAqPfgaTEWEP3S9w0t\ngsicURfo+nLW09/0KfOPinhYZ4ouzU+3xC4pSlEp8Ut9FgL0AgqNslNaK34Kq+NZ\njO9DAQIDAQABAkAgkuLEHLaqkWhLgNKagSajeobLS3rPT0Agm0f7k55FXVt743hw\nNgkp98bMNrzy9AQ1mJGbQZGrpr4c8ZAx3aRNAiEAoxK/MgGeeLui385KJ7ZOYktj\nhLBNAB69fKwTZFsUNh0CIQEJQRpFCcydunv2bENcN/oBTRw39E8GNv2pIcNxZkcb\nNQIgbYSzn3Py6AasNj6nEtCfB+i1p3F35TK/87DlPSrmAgkCIQDJLhFoj1gbwRbH\n/bDRPrtlRUDDx44wHoEhSDRdy77eiQIgE6z/k6I+ChN1LLttwX0galITxmAYrOBh\nBVl433tgTTQ=\n-----END PRIVATE KEY-----" //nolint:lll
 )
 
 func TestAuthTokenSuite(t *testing.T) {
@@ -23,7 +23,7 @@ type AuthTokenSuite struct {
 	suite.Suite
 	auth         sdk.IAuthProvider
 	apiKey       string
-	apiSecretKey string
+	apiSecretKey []byte
 	timeProvider sdk.ITimeProvider
 }
 
@@ -35,7 +35,7 @@ func (tp *testTimeProvider) Now() time.Time {
 
 func (suite *AuthTokenSuite) SetupTest() {
 	suite.apiKey = "apiKey"
-	suite.apiSecretKey = privateKey
+	suite.apiSecretKey = []byte(privateKey)
 	suite.timeProvider = &testTimeProvider{}
 	suite.auth, _ = sdk.NewAuthProvider(
 		suite.apiKey,
@@ -45,20 +45,20 @@ func (suite *AuthTokenSuite) SetupTest() {
 }
 
 func (suite *AuthTokenSuite) TestWithCorrectPrivateKey() {
-	token, err := suite.auth.SignJwt("", "")
+	token, err := suite.auth.SignJwt("", []byte(""))
 	require.NoError(suite.T(), err)
-	require.Equal(suite.T(), "eyJhbGciOiJSUzI1NiIsInR5cCI6IkpXVCJ9.eyJib2R5SGFzaCI6IjMxMzI2MTY1MzMzMjYzNjIzMTY1NjMzMDMyNjQzMDMxNjU2NDYxMzMzNTM4MzE2MjMxMzIzNzYzMzE2NjY1NjUzMzYyMzA2NDYzMzUzMzM1MzczMjY1NjQzNjYyNjE2NjMyMzMzOTM3MzIzMTYxMzAzMzY0MzgzMjY1MzEzMjM2IiwiZXhwIjoxMDEwLCJub25jZSI6MTAwMCwibm93IjoxMDAwLCJzdWIiOiJhcGlLZXkiLCJ1cmkiOiIifQ.iwU8RpQMnkuqNOBRfXMSW9hEotw5tHWH1hfsNOJdFD9NAcLPtKEVRHwtGOOpO1DpTWYvy8zomgNh8CB25SmPxQ", token)
+	require.Equal(suite.T(), "eyJhbGciOiJSUzI1NiIsInR5cCI6IkpXVCJ9.eyJib2R5SGFzaCI6IjMxMzI2MTY1MzMzMjYzNjIzMTY1NjMzMDMyNjQzMDMxNjU2NDYxMzMzNTM4MzE2MjMxMzIzNzYzMzE2NjY1NjUzMzYyMzA2NDYzMzUzMzM1MzczMjY1NjQzNjYyNjE2NjMyMzMzOTM3MzIzMTYxMzAzMzY0MzgzMjY1MzEzMjM2IiwiZXhwIjoxMDEwLCJub25jZSI6MTAwMCwibm93IjoxMDAwLCJzdWIiOiJhcGlLZXkiLCJ1cmkiOiIifQ.iwU8RpQMnkuqNOBRfXMSW9hEotw5tHWH1hfsNOJdFD9NAcLPtKEVRHwtGOOpO1DpTWYvy8zomgNh8CB25SmPxQ", token) //nolint:lll
 }
 
 func (suite *AuthTokenSuite) TestMustFailWithNotRSAPrivateKey() {
 	auth, err := sdk.NewAuthProvider(
 		suite.apiKey,
-		"fakeKey",
+		[]byte("fakeKey"),
 		sdk.WithTimeProvider(suite.timeProvider),
 	)
 	require.NoError(suite.T(), err)
 
-	_, err = auth.SignJwt("", "")
+	_, err = auth.SignJwt("", []byte(""))
 	require.ErrorAs(suite.T(), err, &jwt.ErrNotRSAPrivateKey)
 }
 

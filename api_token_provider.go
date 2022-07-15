@@ -31,8 +31,9 @@ type IAuthProvider interface {
 }
 
 type AuthProvider struct {
-	apiKey, privateKey string
-	timeProvider       ITimeProvider
+	apiKey       string
+	apiSecretKey []byte
+	timeProvider ITimeProvider
 }
 
 func WithTimeProvider(tp ITimeProvider) func(c *AuthProvider) error {
@@ -44,8 +45,8 @@ func WithTimeProvider(tp ITimeProvider) func(c *AuthProvider) error {
 }
 
 // NewAuthProvider Creates signer using api key and private key from config
-func NewAuthProvider(apiKey, privateKey string, configs ...func(*AuthProvider) error) (*AuthProvider, error) {
-	auth := &AuthProvider{apiKey, privateKey, DefaultTimeProvider()}
+func NewAuthProvider(apiKey string, apiSecretKey []byte, configs ...func(*AuthProvider) error) (*AuthProvider, error) {
+	auth := &AuthProvider{apiKey, apiSecretKey, DefaultTimeProvider()}
 
 	for _, conf := range configs {
 		err := conf(auth)
@@ -58,8 +59,8 @@ func NewAuthProvider(apiKey, privateKey string, configs ...func(*AuthProvider) e
 }
 
 // SignJwt Creates token using path and payload
-func (ap *AuthProvider) SignJwt(path string, bodyJson []byte) (string, error) {
-	hash, err := hashBody(bodyJson)
+func (ap *AuthProvider) SignJwt(path string, bodyJSON []byte) (string, error) {
+	hash, err := hashBody(bodyJSON)
 	if err != nil {
 		return "", err
 	}
@@ -94,7 +95,7 @@ func hashBody(body []byte) (string, error) {
 }
 
 func (ap *AuthProvider) signJwt(claims jwt.MapClaims) (string, error) {
-	key, err := jwt.ParseRSAPrivateKeyFromPEM([]byte(ap.privateKey))
+	key, err := jwt.ParseRSAPrivateKeyFromPEM(ap.apiSecretKey)
 	if err != nil {
 		return "", errors.Wrap(err, "failed to read token from string")
 	}

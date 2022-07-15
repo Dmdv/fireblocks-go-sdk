@@ -58,7 +58,7 @@ func WithTimout(timeout time.Duration) func(o *SDKOptions) {
 	}
 }
 
-func CreateSDK(apikey, privateKey string, baseURL string, opts ...func(o *SDKOptions)) (*FireblocksSDK, error) {
+func CreateSDK(apikey string, privateKey []byte, baseURL string, opts ...func(o *SDKOptions)) (*FireblocksSDK, error) {
 	opt := &SDKOptions{}
 
 	for _, o := range opts {
