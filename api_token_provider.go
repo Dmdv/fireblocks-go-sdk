@@ -64,13 +64,15 @@ func (ap *AuthProvider) SignJwt(path string, bodyJSON []byte) (string, error) {
 		return "", err
 	}
 
-	now := ap.timeProvider.Now()
+	now := time.Now()
+	nowUnix := now.Unix()
 	exp := now.Add(10 * time.Second)
 
 	signJwt, err := ap.signJwt(jwt.MapClaims{
 		"uri":      path,
-		"nonce":    now.Unix(),
-		"now":      now.Unix(),
+		"nonce":    nowUnix,
+		"iat":      nowUnix,
+		"now":      nowUnix,
 		"exp":      exp.Unix(),
 		"sub":      ap.apiKey,
 		"bodyHash": hash,

@@ -55,4 +55,5 @@ func (suite *SDKSuite) TestSupportedAssets() {
 	assets, err := fb.GetSupportedAssets()
 	require.NoError(suite.T(), err)
 	require.NotNil(suite.T(), assets)
+	require.Greater(suite.T(), len(assets), 0)
 }
