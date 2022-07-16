@@ -66,7 +66,7 @@ func (suite *SignerSuite) TestSignerSuite() {
 	headers := http.Header{}
 
 	headers.Set("X-API-Key", suite.apiKey)
-	headers.Set("Authorization", "Bearer "+token)
+	headers.Set("Authorization", fmt.Sprintf("Bearer %s", token))
 	headers.Set("Content-Type", "application/json")
 
 	path := fmt.Sprintf("%s%s", suite.baseURL, suite.url)
