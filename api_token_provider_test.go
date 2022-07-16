@@ -47,7 +47,7 @@ func (suite *AuthTokenSuite) SetupTest() {
 func (suite *AuthTokenSuite) TestWithCorrectPrivateKey() {
 	token, err := suite.auth.SignJwt("", []byte(""))
 	require.NoError(suite.T(), err)
-	require.Equal(suite.T(), "eyJhbGciOiJSUzI1NiIsInR5cCI6IkpXVCJ9.eyJib2R5SGFzaCI6IjMxMzI2MTY1MzMzMjYzNjIzMTY1NjMzMDMyNjQzMDMxNjU2NDYxMzMzNTM4MzE2MjMxMzIzNzYzMzE2NjY1NjUzMzYyMzA2NDYzMzUzMzM1MzczMjY1NjQzNjYyNjE2NjMyMzMzOTM3MzIzMTYxMzAzMzY0MzgzMjY1MzEzMjM2IiwiZXhwIjoxMDEwLCJub25jZSI6MTAwMCwibm93IjoxMDAwLCJzdWIiOiJhcGlLZXkiLCJ1cmkiOiIifQ.iwU8RpQMnkuqNOBRfXMSW9hEotw5tHWH1hfsNOJdFD9NAcLPtKEVRHwtGOOpO1DpTWYvy8zomgNh8CB25SmPxQ", token) //nolint:lll
+	require.Equal(suite.T(), "eyJhbGciOiJSUzI1NiIsInR5cCI6IkpXVCJ9.eyJib2R5SGFzaCI6ImUzYjBjNDQyOThmYzFjMTQ5YWZiZjRjODk5NmZiOTI0MjdhZTQxZTQ2NDliOTM0Y2E0OTU5OTFiNzg1MmI4NTUiLCJleHAiOjE2NTc5ODUxODMsImlhdCI6MTY1Nzk4NTE3Mywibm9uY2UiOjE2NTc5ODUxNzMsIm5vdyI6MTY1Nzk4NTE3Mywic3ViIjoiYXBpS2V5IiwidXJpMSI6IiJ9.UOT9GGLzUrEW5hpNVJweT2gGhP6Mf3vEK2Cl1ySxQrNMjF_2bwlaXqkqDPXdjCd_tULEs-48KEDVLGiMjo8TKg", token) //nolint:lll
 }
 
 func (suite *AuthTokenSuite) TestMustFailWithNotRSAPrivateKey() {
