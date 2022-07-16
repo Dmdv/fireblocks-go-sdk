@@ -25,6 +25,7 @@ import (
 
 type SignerSuite struct {
 	suite.Suite
+	url          string
 	apiKey       string
 	apiSecretKey *rsa.PrivateKey
 	baseURL      string
@@ -40,6 +41,7 @@ func (suite *SignerSuite) SetupTest() {
 	viper.SetConfigFile("env.yaml")
 	viper.ReadInConfig()
 
+	suite.url = "/v1/supported_assets"
 	suite.baseURL = "https://api.fireblocks.io"
 	suite.apiKey = viper.GetString("apikey")
 	suite.apiSecretKey = GetPrivateKeyFromFile("fireblocks_secret.key")
@@ -49,10 +51,10 @@ func (suite *SignerSuite) TestSignerSuite() {
 	auth := jwtauth.New("RS256", suite.apiSecretKey, suite.apiKey)
 
 	payload := map[string]interface{}{
-		"uri":      "/v1/supported_assets",
+		"uri":      suite.url,
 		"nonce":    time.Now().Unix(),
 		"iat":      time.Now().Unix(),
-		"exp":      time.Now().Unix() + int64(1000),
+		"exp":      time.Now().Unix() + int64(10),
 		"sub":      suite.apiKey,
 		"bodyHash": hashBody([]byte("")),
 	}
@@ -67,17 +69,19 @@ func (suite *SignerSuite) TestSignerSuite() {
 	headers.Set("Authorization", "Bearer "+token)
 	headers.Set("Content-Type", "application/json")
 
-	request, err := http.NewRequest(
-		http.MethodGet,
-		fmt.Sprintf("%s/v1/supported_assets", suite.baseURL),
-		prepareBody([]byte("")),
-	)
+	path := fmt.Sprintf("%s%s", suite.baseURL, suite.url)
+	request, err := http.NewRequest(http.MethodGet, path, prepareBody([]byte("")))
 	require.NoError(suite.T(), err)
+	request.Header = headers
 
 	cl := &http.Client{}
 	resp, err := cl.Do(request)
 	require.NoError(suite.T(), err)
 	require.NotNil(suite.T(), resp)
+
+	body, err := ioutil.ReadAll(resp.Body)
+	require.NoError(suite.T(), err)
+	suite.T().Log(string(body))
 
 	require.Equal(suite.T(), 200, resp.StatusCode)
 }
