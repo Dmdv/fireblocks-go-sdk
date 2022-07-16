@@ -10,7 +10,13 @@ type IFireblocksClaims interface {
 	CreateClaims(path, apiKey, hash string) jwt.MapClaims
 }
 
-type FireblocksClaims struct{}
+type FireblocksClaims struct {
+	time ITimeProvider
+}
+
+func NewClaimsProvider(timeProvider ITimeProvider) IFireblocksClaims {
+	return &FireblocksClaims{timeProvider}
+}
 
 func (client *FireblocksClaims) CreateClaims(path, apiKey, hash string) jwt.MapClaims {
 	now := time.Now()

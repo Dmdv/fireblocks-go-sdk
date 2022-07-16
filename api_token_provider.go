@@ -23,8 +23,8 @@ func DefaultTimeProvider() ITimeProvider {
 	return &TimeProvider{}
 }
 
-func DefaultClaimProvider() IFireblocksClaims {
-	return &FireblocksClaims{}
+func DefaultClaimProvider(time ITimeProvider) IFireblocksClaims {
+	return NewClaimsProvider(time)
 }
 
 type IAuthProvider interface {
@@ -32,15 +32,18 @@ type IAuthProvider interface {
 	GetApiKey() string
 }
 
+type AuthProviderConfig struct {
+	timeProvider ITimeProvider
+}
+
 type AuthProvider struct {
 	apiKey        string
 	apiSecretKey  []byte
-	timeProvider  ITimeProvider
 	claimProvider IFireblocksClaims
 }
 
-func WithTimeProvider(tp ITimeProvider) func(c *AuthProvider) error {
-	return func(c *AuthProvider) error {
+func WithTimeProvider(tp ITimeProvider) func(c *AuthProviderConfig) error {
+	return func(c *AuthProviderConfig) error {
 		c.timeProvider = tp
 
 		return nil
@@ -48,19 +51,19 @@ func WithTimeProvider(tp ITimeProvider) func(c *AuthProvider) error {
 }
 
 // NewAuthProvider Creates signer using api key and private key from config
-func NewAuthProvider(apiKey string, apiSecretKey []byte, configs ...func(*AuthProvider) error) (*AuthProvider, error) {
-	auth := &AuthProvider{
-		apiKey,
-		apiSecretKey,
-		DefaultTimeProvider(),
-		DefaultClaimProvider(),
-	}
-
+func NewAuthProvider(apiKey string, apiSecretKey []byte, configs ...func(*AuthProviderConfig) error) (*AuthProvider, error) {
+	cfg := &AuthProviderConfig{DefaultTimeProvider()}
 	for _, conf := range configs {
-		err := conf(auth)
+		err := conf(cfg)
 		if err != nil {
 			return nil, errors.Wrap(err, "invalid/unsupported options")
 		}
+	}
+
+	auth := &AuthProvider{
+		apiKey,
+		apiSecretKey,
+		DefaultClaimProvider(cfg.timeProvider),
 	}
 
 	return auth, nil
