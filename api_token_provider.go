@@ -1,23 +1,13 @@
 package fireblocksdk
 
 import (
+	"crypto/rsa"
 	"crypto/sha256"
 	"encoding/hex"
-	"time"
 
 	"github.com/golang-jwt/jwt"
 	"github.com/pkg/errors"
 )
-
-type ITimeProvider interface {
-	Now() time.Time
-}
-
-type TimeProvider struct{}
-
-func (tp *TimeProvider) Now() time.Time {
-	return time.Now()
-}
 
 func DefaultTimeProvider() ITimeProvider {
 	return &TimeProvider{}
@@ -38,7 +28,7 @@ type AuthProviderConfig struct {
 
 type AuthProvider struct {
 	apiKey        string
-	apiSecretKey  []byte
+	privateKey    *rsa.PrivateKey
 	claimProvider IFireblocksClaims
 }
 
@@ -60,9 +50,14 @@ func NewAuthProvider(apiKey string, apiSecretKey []byte, configs ...func(*AuthPr
 		}
 	}
 
+	key, err := jwt.ParseRSAPrivateKeyFromPEM(apiSecretKey)
+	if err != nil {
+		return nil, errors.Wrap(err, "failed to read token from string")
+	}
+
 	auth := &AuthProvider{
 		apiKey,
-		apiSecretKey,
+		key,
 		DefaultClaimProvider(cfg.timeProvider),
 	}
 
@@ -77,9 +72,13 @@ func (ap *AuthProvider) SignJwt(path string, bodyJSON []byte) (string, error) {
 	}
 
 	claims := ap.claimProvider.CreateClaims(path, ap.apiKey, hash)
-	signJwt, err := ap.signJwt(claims)
 
-	return signJwt, err
+	jwtToken, err := jwt.NewWithClaims(jwt.SigningMethodRS256, claims).SignedString(ap.privateKey)
+	if err != nil {
+		return "", errors.Wrap(err, "failed to create token")
+	}
+
+	return jwtToken, err
 }
 
 func (ap *AuthProvider) GetApiKey() string {
@@ -94,18 +93,4 @@ func hashBody(body []byte) (string, error) {
 	}
 
 	return hex.EncodeToString(sha.Sum(nil)), nil
-}
-
-func (ap *AuthProvider) signJwt(claims jwt.MapClaims) (string, error) {
-	key, err := jwt.ParseRSAPrivateKeyFromPEM(ap.apiSecretKey)
-	if err != nil {
-		return "", errors.Wrap(err, "failed to read token from string")
-	}
-
-	token, err := jwt.NewWithClaims(jwt.SigningMethodRS256, claims).SignedString(key)
-	if err != nil {
-		return "", errors.Wrap(err, "failed to create token")
-	}
-
-	return token, nil
 }

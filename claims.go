@@ -19,7 +19,7 @@ func NewClaimsProvider(timeProvider ITimeProvider) IFireblocksClaims {
 }
 
 func (client *FireblocksClaims) CreateClaims(path, apiKey, hash string) jwt.MapClaims {
-	now := time.Now()
+	now := client.time.Now()
 	nowUnix := now.Unix()
 	exp := now.Add(10 * time.Second)
 
