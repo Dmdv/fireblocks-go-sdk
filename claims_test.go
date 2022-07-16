@@ -32,7 +32,7 @@ func TestTestClaimsSuite(t *testing.T) {
 
 func (suite *TestClaimsSuite) SetupTest() {
 	suite.time = &testTimeProvider{}
-	suite.claims = sdk.NewClaimsProvider(suite.time)
+	suite.claims = sdk.NewFireblocksClaimsProvider(suite.time, sdk.DefaultTokenExpiry())
 }
 
 func (suite *TestClaimsSuite) TestClaimsHaveAllFields() {

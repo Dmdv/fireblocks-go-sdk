@@ -13,8 +13,12 @@ func DefaultTimeProvider() ITimeProvider {
 	return &TimeProvider{}
 }
 
-func DefaultClaimProvider(time ITimeProvider) IFireblocksClaims {
-	return NewClaimsProvider(time)
+func DefaultClaimProvider(time ITimeProvider, exp int64) IFireblocksClaims {
+	return NewFireblocksClaimsProvider(time, exp)
+}
+
+func DefaultTokenExpiry() int64 {
+	return 10
 }
 
 type IAuthProvider interface {
@@ -23,13 +27,22 @@ type IAuthProvider interface {
 }
 
 type AuthProviderConfig struct {
-	timeProvider ITimeProvider
+	timeProvider  ITimeProvider
+	expirySeconds int64
 }
 
 type AuthProvider struct {
 	apiKey        string
 	privateKey    *rsa.PrivateKey
 	claimProvider IFireblocksClaims
+}
+
+func WithTokenExpiry(exp int64) func(c *AuthProviderConfig) error {
+	return func(c *AuthProviderConfig) error {
+		c.expirySeconds = exp
+
+		return nil
+	}
 }
 
 func WithTimeProvider(tp ITimeProvider) func(c *AuthProviderConfig) error {
@@ -42,7 +55,7 @@ func WithTimeProvider(tp ITimeProvider) func(c *AuthProviderConfig) error {
 
 // NewAuthProvider Creates signer using api key and private key from config
 func NewAuthProvider(apiKey string, apiSecretKey []byte, configs ...func(*AuthProviderConfig) error) (*AuthProvider, error) {
-	cfg := &AuthProviderConfig{DefaultTimeProvider()}
+	cfg := &AuthProviderConfig{DefaultTimeProvider(), DefaultTokenExpiry()}
 	for _, conf := range configs {
 		err := conf(cfg)
 		if err != nil {
@@ -58,7 +71,7 @@ func NewAuthProvider(apiKey string, apiSecretKey []byte, configs ...func(*AuthPr
 	auth := &AuthProvider{
 		apiKey,
 		key,
-		DefaultClaimProvider(cfg.timeProvider),
+		DefaultClaimProvider(cfg.timeProvider, cfg.expirySeconds),
 	}
 
 	return auth, nil

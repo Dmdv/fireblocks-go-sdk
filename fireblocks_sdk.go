@@ -29,9 +29,10 @@ func WithPaged(paged bool) func(*GetRequestOption) {
 }
 
 type SDKOptions struct {
-	timeoutMilliseconds time.Duration
-	auth                IAuthProvider
-	client              IAPIClient
+	HTTPTimeoutMilliseconds time.Duration
+	tokenExpirySeconds      int64
+	auth                    IAuthProvider
+	client                  IAPIClient
 }
 
 type FireblocksSDK struct {
@@ -52,21 +53,27 @@ func WithAPIClient(client IAPIClient) func(o *SDKOptions) {
 	}
 }
 
-func WithTimout(timeout time.Duration) func(o *SDKOptions) {
+func WithHTTPTimout(timeout time.Duration) func(o *SDKOptions) {
 	return func(o *SDKOptions) {
-		o.timeoutMilliseconds = timeout
+		o.HTTPTimeoutMilliseconds = timeout
+	}
+}
+
+func WithTokenTimeout(exp int64) func(o *SDKOptions) {
+	return func(o *SDKOptions) {
+		o.tokenExpirySeconds = exp
 	}
 }
 
 func CreateSDK(apikey string, privateKey []byte, baseURL string, opts ...func(o *SDKOptions)) (*FireblocksSDK, error) {
-	opt := &SDKOptions{}
+	opt := &SDKOptions{tokenExpirySeconds: DefaultTokenExpiry()}
 
 	for _, o := range opts {
 		o(opt)
 	}
 
 	if opt.auth == nil {
-		provider, err := NewAuthProvider(apikey, privateKey)
+		provider, err := NewAuthProvider(apikey, privateKey, WithTokenExpiry(opt.tokenExpirySeconds))
 		if err != nil {
 			return nil, err
 		}

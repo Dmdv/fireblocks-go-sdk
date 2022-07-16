@@ -37,7 +37,7 @@ func (suite *SDKSuite) TestSDKSuite() {
 		"apiKey",
 		[]byte(privateKey),
 		suite.baseURL,
-		sdk.WithTimout(111),
+		sdk.WithHTTPTimout(111),
 	)
 
 	require.NoError(suite.T(), err)
@@ -49,6 +49,7 @@ func (suite *SDKSuite) TestSupportedAssets() {
 		suite.apiKey,
 		suite.apiSecretKey,
 		suite.baseURL,
+		sdk.WithTokenTimeout(5),
 	)
 	require.NoError(suite.T(), err)
 
