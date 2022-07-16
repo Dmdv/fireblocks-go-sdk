@@ -3,9 +3,7 @@ package fireblocksdk_test
 import (
 	"crypto/rsa"
 	"crypto/sha256"
-	"crypto/x509"
 	"encoding/hex"
-	"encoding/pem"
 	"fmt"
 	"io"
 	"io/ioutil"
@@ -14,12 +12,11 @@ import (
 	"testing"
 	"time"
 
-	"github.com/stretchr/testify/require"
-
-	"github.com/spf13/viper"
-
 	"github.com/go-chi/jwtauth"
-	//"github.com/lestrrat-go/jwx/jwt"
+	"github.com/golang-jwt/jwt"
+	"github.com/hashicorp/go-retryablehttp"
+	"github.com/spf13/viper"
+	"github.com/stretchr/testify/require"
 	"github.com/stretchr/testify/suite"
 )
 
@@ -47,7 +44,52 @@ func (suite *SignerSuite) SetupTest() {
 	suite.apiSecretKey = GetPrivateKeyFromFile("fireblocks_secret.key")
 }
 
-func (suite *SignerSuite) TestSignerSuite() {
+func (suite *SignerSuite) TestSignerSuiteUsingRetryableHTTP() {
+	/////////// Signing part
+
+	now := time.Now()
+	nowUnix := now.Unix()
+	exp := now.Add(10 * time.Second)
+
+	payload := jwt.MapClaims{
+		"uri":      suite.url,
+		"nonce":    nowUnix,
+		"iat":      nowUnix,
+		"now":      nowUnix,
+		"exp":      exp.Unix(),
+		"sub":      suite.apiKey,
+		"bodyHash": hashBody([]byte("")),
+	}
+
+	token, err := suite.signJwt(payload)
+	require.NoError(suite.T(), err)
+	require.NotEmpty(suite.T(), token)
+
+	//////////// Request part
+
+	path := fmt.Sprintf("%s%s", suite.baseURL, suite.url)
+	suite.T().Logf("GET %s", path)
+
+	request, err := retryablehttp.NewRequest(http.MethodGet, path, prepareBody([]byte("")))
+	require.NoError(suite.T(), err)
+
+	request.Header.Add("X-API-Key", suite.apiKey)
+	request.Header.Add("Authorization", fmt.Sprintf("Bearer %s", token))
+	request.Header.Add("Content-Type", "application/json")
+
+	cl := retryablehttp.NewClient()
+	resp, err := cl.Do(request)
+	require.NoError(suite.T(), err)
+	require.NotNil(suite.T(), resp)
+
+	body, err := ioutil.ReadAll(resp.Body)
+	require.NoError(suite.T(), err)
+	suite.T().Log(string(body))
+
+	require.Equal(suite.T(), 200, resp.StatusCode)
+}
+
+func (suite *SignerSuite) TestSignerSuiteUsingBasicHTTP() {
 	auth := jwtauth.New("RS256", suite.apiSecretKey, suite.apiKey)
 
 	payload := map[string]interface{}{
@@ -70,6 +112,8 @@ func (suite *SignerSuite) TestSignerSuite() {
 	headers.Set("Content-Type", "application/json")
 
 	path := fmt.Sprintf("%s%s", suite.baseURL, suite.url)
+	suite.T().Logf("GET %s", path)
+
 	request, err := http.NewRequest(http.MethodGet, path, prepareBody([]byte("")))
 	require.NoError(suite.T(), err)
 	request.Header = headers
@@ -105,21 +149,17 @@ func prepareBody(encodedBody []byte) io.ReadCloser {
 	)
 }
 
-func getPrivateKeyFromString(value []byte) *rsa.PrivateKey {
-	block, _ := pem.Decode(value)
-	if block == nil {
-		return nil
-	}
-
-	parseResult, err := x509.ParsePKCS8PrivateKey(block.Bytes)
-	key := parseResult.(*rsa.PrivateKey)
-	if err != nil {
-		return nil
-	}
+func GetPrivateKeyFromFile(path string) *rsa.PrivateKey {
+	caPrivateKey, _ := ioutil.ReadFile(path)
+	key, _ := jwt.ParseRSAPrivateKeyFromPEM(caPrivateKey)
 	return key
 }
 
-func GetPrivateKeyFromFile(path string) *rsa.PrivateKey {
-	caPrivateKey, _ := ioutil.ReadFile(path)
-	return getPrivateKeyFromString(caPrivateKey)
+func (suite *SignerSuite) signJwt(claims jwt.MapClaims) (string, error) {
+	token, err := jwt.NewWithClaims(jwt.SigningMethodRS256, claims).SignedString(suite.apiSecretKey)
+	if err != nil {
+		return "", err
+	}
+
+	return token, nil
 }

@@ -3,9 +3,11 @@ package fireblocksdk
 import (
 	"encoding/json"
 	"fmt"
+	"io"
 	"io/ioutil"
 	"log"
 	"net/http"
+	"strings"
 
 	"github.com/hashicorp/go-retryablehttp"
 	"github.com/pkg/errors"
@@ -55,7 +57,7 @@ func (api *APIClient) makeRequest(method, path string, body interface{}) ([]byte
 
 	path = fmt.Sprintf("%s%s", api.baseURL, path)
 
-	req, err := retryablehttp.NewRequest(method, path, bodyJSON)
+	req, err := retryablehttp.NewRequest(method, path, prepareBody(bodyJSON))
 	if err != nil {
 		return nil, status, errors.Wrap(err, "failed to create request")
 	}
@@ -122,4 +124,16 @@ func (api *APIClient) DoDeleteRequest(path string) ([]byte, int, error) {
 
 func (api *APIClient) GetPath(path string) string {
 	return fmt.Sprintf(`/%s%s`, APIVERSION, path)
+}
+
+func prepareBody(encodedBody []byte) io.ReadCloser {
+	if string(encodedBody) == "{}" {
+		encodedBody = []byte("")
+	}
+
+	return ioutil.NopCloser(
+		strings.NewReader(
+			string(encodedBody),
+		),
+	)
 }
