@@ -13,15 +13,18 @@ type ITimeProvider interface {
 	Now() time.Time
 }
 
-type TimeProvider struct {
-}
+type TimeProvider struct{}
 
 func (tp *TimeProvider) Now() time.Time {
 	return time.Now()
 }
 
-func DefaultTimeProvider() *TimeProvider {
+func DefaultTimeProvider() ITimeProvider {
 	return &TimeProvider{}
+}
+
+func DefaultClaimProvider() IFireblocksClaims {
+	return &FireblocksClaims{}
 }
 
 type IAuthProvider interface {
@@ -30,9 +33,10 @@ type IAuthProvider interface {
 }
 
 type AuthProvider struct {
-	apiKey       string
-	apiSecretKey []byte
-	timeProvider ITimeProvider
+	apiKey        string
+	apiSecretKey  []byte
+	timeProvider  ITimeProvider
+	claimProvider IFireblocksClaims
 }
 
 func WithTimeProvider(tp ITimeProvider) func(c *AuthProvider) error {
@@ -45,7 +49,12 @@ func WithTimeProvider(tp ITimeProvider) func(c *AuthProvider) error {
 
 // NewAuthProvider Creates signer using api key and private key from config
 func NewAuthProvider(apiKey string, apiSecretKey []byte, configs ...func(*AuthProvider) error) (*AuthProvider, error) {
-	auth := &AuthProvider{apiKey, apiSecretKey, DefaultTimeProvider()}
+	auth := &AuthProvider{
+		apiKey,
+		apiSecretKey,
+		DefaultTimeProvider(),
+		DefaultClaimProvider(),
+	}
 
 	for _, conf := range configs {
 		err := conf(auth)
@@ -64,19 +73,8 @@ func (ap *AuthProvider) SignJwt(path string, bodyJSON []byte) (string, error) {
 		return "", err
 	}
 
-	now := time.Now()
-	nowUnix := now.Unix()
-	exp := now.Add(10 * time.Second)
-
-	signJwt, err := ap.signJwt(jwt.MapClaims{
-		"uri":      path,
-		"nonce":    nowUnix,
-		"iat":      nowUnix,
-		"now":      nowUnix,
-		"exp":      exp.Unix(),
-		"sub":      ap.apiKey,
-		"bodyHash": hash,
-	})
+	claims := ap.claimProvider.CreateClaims(path, ap.apiKey, hash)
+	signJwt, err := ap.signJwt(claims)
 
 	return signJwt, err
 }
