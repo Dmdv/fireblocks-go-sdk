@@ -18,3 +18,5 @@
 
 .env
 env.yaml
+
+fireblocks_secret.key
