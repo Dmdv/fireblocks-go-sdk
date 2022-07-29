@@ -6,7 +6,7 @@ type AssetTypeResponse struct {
 	AssetType       string
 	ContractAddress string
 	NativeAsset     string
-	Cecimals        *int64
+	Decimals        *int64
 }
 
 // CreateVaultAssetResponse defines model for CreateVaultAssetResponse.
