@@ -3,6 +3,7 @@ package fireblocksdk_test
 import (
 	sdk "fireblocksdk"
 	"testing"
+	"time"
 
 	"github.com/spf13/viper"
 
@@ -71,6 +72,7 @@ func (suite *SDKSuite) TestSupportedAssets() {
 }
 
 func (suite *SDKSuite) TestAccounts() {
+	time.Sleep(time.Millisecond * 500)
 	accounts, err := suite.sdk.GetVaultAccounts(nil)
 	require.NoError(suite.T(), err)
 	require.NotNil(suite.T(), accounts)
@@ -81,6 +83,8 @@ func (suite *SDKSuite) TestAccountsPrefixFilters() {
 	q := &sdk.VaultAccountsFilter{
 		NamePrefix: "vault",
 	}
+
+	time.Sleep(time.Millisecond * 500)
 
 	accounts, err := suite.sdk.GetVaultAccounts(q)
 	require.NoError(suite.T(), err)
@@ -93,6 +97,8 @@ func (suite *SDKSuite) TestAccountsSuffixFilters() {
 		NameSuffix: "UTX46",
 	}
 
+	time.Sleep(time.Millisecond * 500)
+
 	accounts, err := suite.sdk.GetVaultAccounts(q)
 	require.NoError(suite.T(), err)
 	require.NotNil(suite.T(), accounts)
@@ -103,6 +109,8 @@ func (suite *SDKSuite) TestAccountsAssetIDFilters() {
 	q := &sdk.VaultAccountsFilter{
 		AssetID: "DAI_UNI_TEST",
 	}
+
+	time.Sleep(time.Millisecond * 500)
 
 	accounts, err := suite.sdk.GetVaultAccounts(q)
 	require.NoError(suite.T(), err)
@@ -115,6 +123,8 @@ func (suite *SDKSuite) TestAccountsTotalAmountFilters() {
 		MinAmountThreshold: "6.0",
 	}
 
+	time.Sleep(time.Millisecond * 500)
+
 	accounts, err := suite.sdk.GetVaultAccounts(q)
 	require.NoError(suite.T(), err)
 	require.NotNil(suite.T(), accounts)
@@ -126,6 +136,8 @@ func (suite *SDKSuite) TestAccountsPagedFilters() {
 		Limit: 1,
 	}
 
+	time.Sleep(time.Millisecond * 500)
+
 	accounts1, err := suite.sdk.GetVaultAccountsWithPageInfo(qfirst)
 	require.NoError(suite.T(), err)
 	require.NotNil(suite.T(), accounts1)
@@ -133,9 +145,11 @@ func (suite *SDKSuite) TestAccountsPagedFilters() {
 	require.NotEmpty(suite.T(), accounts1.NextUrl)
 
 	qsecond := &sdk.PagedVaultAccountsRequestFilters{
-		Limit:  1,
-		Before: accounts1.Paging.After,
+		Limit: 1,
+		After: accounts1.Paging.After,
 	}
+
+	time.Sleep(time.Millisecond * 500)
 
 	accounts2, err := suite.sdk.GetVaultAccountsWithPageInfo(qsecond)
 	require.NotEqual(suite.T(), accounts1.Accounts[0].ID, accounts2.Accounts[0].ID)
@@ -157,7 +171,11 @@ func (suite *SDKSuite) TestAccountsPagedFilters() {
 		Before: accounts2.Paging.Before,
 	}
 
+	time.Sleep(time.Millisecond * 500)
+
 	accounts3, err := suite.sdk.GetVaultAccountsWithPageInfo(qthird)
 	require.NoError(suite.T(), err)
-	require.Equal(suite.T(), accounts3.Accounts[0].ID, accounts1.Accounts[0].ID)
+	id := accounts3.Accounts[0].ID
+	actual := accounts1.Accounts[0].ID
+	require.Equal(suite.T(), id, actual)
 }
