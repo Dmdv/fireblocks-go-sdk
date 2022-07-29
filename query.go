@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"net/url"
 	"reflect"
+	"strings"
 )
 
 type QueryItems []QueryItem
@@ -39,22 +40,41 @@ func (items QueryItems) UrlValues() url.Values {
 	values := make(url.Values, len(items))
 
 	for _, val := range items {
-		values.Add(val.Key, val.Value)
+		values.Add(normalize(val.Key, val.Value))
 	}
 
 	return values
 }
 
+func normalize(key, value string) (string, string) {
+	substrings := strings.Split(key, ",")
+
+	return substrings[0], value
+}
+
 func iterateStructFields(t reflect.Type, v any, vars *QueryItems) {
 	val := reflect.ValueOf(v)
+	if val.Kind() == reflect.Ptr {
+		val = val.Elem()
+	}
+
 	for i := 0; i < t.NumField(); i++ {
 		var field = t.Field(i)
 		tag := field.Tag.Get("json")
-		value := val.Field(i).Interface()
+		value := val.Field(i)
+		kind := value.Kind()
+
+		var vv any
+		if kind == reflect.Ptr {
+			value = value.Elem()
+			vv = value.Interface()
+		} else {
+			vv = value.Interface()
+		}
 
 		entry := QueryItem{
 			Key:   tag,
-			Value: fmt.Sprintf("%v", value),
+			Value: fmt.Sprintf("%v", vv),
 		}
 
 		*vars = append(*vars, entry)
