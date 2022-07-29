@@ -59,6 +59,17 @@ func (suite *QuerySuite) TestMustConvertToValueFromPointer() {
 	require.Equal(suite.T(), 3, len(values))
 }
 
+func (suite *QuerySuite) TestNil() {
+	values := sdk.BuildQuery(nil)
+	require.Nil(suite.T(), values)
+}
+
+func (suite *QuerySuite) TestNilStruct() {
+	var q *QueryStruct
+	values := sdk.BuildQuery(q)
+	require.Nil(suite.T(), values)
+}
+
 func (suite *QuerySuite) TestMustConvertUrlValuesFromPointer() {
 	values := sdk.BuildQuery(suite.pt)
 	query := values.UrlValues()

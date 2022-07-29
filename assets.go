@@ -43,45 +43,70 @@ type RewardsInfo struct {
 	PendingRewards string `json:"pendingRewards,omitempty"`
 }
 
-// VaultAsset defines model for VaultAsset.
-type VaultAsset struct {
-	AllocatedBalances *[]AllocatedBalance `json:"allocatedBalances,omitempty"`
-	// Funds available for transfer. Equals the blockchain balance minus any locked amounts
-	Available string `json:"available,omitempty"`
-	// Deprecated - replaced by "total"
-	Balance     string `json:"balance,omitempty"`
-	BlockHash   string `json:"blockHash,omitempty"`
-	BlockHeight string `json:"blockHeight,omitempty"`
-	// The cumulative frozen balance
-	Frozen string `json:"frozen,omitempty"`
-	Id     string `json:"id,omitempty"`
-	// Funds in outgoing transactions that are not yet published to the network
-	LockedAmount string `json:"lockedAmount,omitempty"`
-	// The cumulative balance of all transactions pending to be cleared
-	Pending              string       `json:"pending,omitempty"`
-	PendingRefundCPU     string       `json:"pendingRefundCPU,omitempty"`
-	PendingRefundNetwork string       `json:"pendingRefundNetwork,omitempty"`
-	RewardsInfo          *RewardsInfo `json:"rewardsInfo,omitempty"`
-	SelfStakedCPU        string       `json:"selfStakedCPU,omitempty"`
-	SelfStakedNetwork    string       `json:"selfStakedNetwork,omitempty"`
-	// Staked balance
-	Staked string `json:"staked,omitempty"`
-	// The total wallet balance. In EOS this value includes the network balance, self staking and pending refund. For all other coins it is the balance as it appears on the blockchain.
-	Total              string `json:"total,omitempty"`
-	TotalStakedCPU     string `json:"totalStakedCPU,omitempty"`
-	TotalStakedNetwork string `json:"totalStakedNetwork,omitempty"`
+/*
+export interface AssetResponse {
+    id: string;
+    total: string;
+	// Deprecated, replaced by total
+    balance?: string;
+    lockedAmount?: string;
+    available: string;
+    pending: string;
+    selfStakedCPU?: string;
+    selfStakedNetwork?: string;
+    pendingRefundCPU?: string;
+    pendingRefundNetwork?: string;
+    totalStakedCPU?: string;
+    totalStakedNetwork?: string;
+    rewardInfo?: BalanceRewardInfo;
+    blockHeight?: string;
+    blockHash?: string;
+    allocatedBalances?: {
+        allocationId: string;
+        thirdPartyAccountId?: string;
+        affiliation?: VirtualAffiliation;
+        virtualType?: VirtualType;
+        total: string;
+        available: string;
+        pending?: string;
+        frozen?: string;
+        locked?: string;
+    }[];
+}
+*/
+
+// AssetResponse defines model for VaultAsset.
+type AssetResponse struct {
+	Id                   string              `json:"id,omitempty"`
+	Total                string              `json:"total,omitempty"`   // The total wallet balance. In EOS this value includes the network balance, self staking and pending refund. For all other coins it is the balance as it appears on the blockchain.
+	Balance              *string             `json:"balance,omitempty"` // Deprecated - replaced by "total"
+	AllocatedBalances    *[]AllocatedBalance `json:"allocatedBalances,omitempty"`
+	Available            string              `json:"available,omitempty"` // Funds available for transfer. Equals the blockchain balance minus any locked amounts
+	BlockHash            string              `json:"blockHash,omitempty"`
+	BlockHeight          string              `json:"blockHeight,omitempty"`
+	Frozen               string              `json:"frozen,omitempty"`               // The cumulative frozen balance by AML policy
+	LockedAmount         *string             `json:"lockedAmount,omitempty"`         // Funds in outgoing transactions that are not yet published to the network
+	Pending              string              `json:"pending,omitempty"`              // The cumulative balance of all transactions pending to be cleared
+	PendingRefundCPU     string              `json:"pendingRefundCPU,omitempty"`     // Deprecated
+	PendingRefundNetwork string              `json:"pendingRefundNetwork,omitempty"` // Deprecated
+	RewardsInfo          *RewardsInfo        `json:"rewardsInfo,omitempty"`
+	SelfStakedCPU        *string             `json:"selfStakedCPU,omitempty"`      // Deprecated
+	SelfStakedNetwork    *string             `json:"selfStakedNetwork,omitempty"`  // Deprecated
+	Staked               string              `json:"staked,omitempty"`             // Staked balance
+	TotalStakedCPU       *string             `json:"totalStakedCPU,omitempty"`     // Deprecated
+	TotalStakedNetwork   *string             `json:"totalStakedNetwork,omitempty"` // Deprecated
 }
 
 // UnmarshalJSON handles deserialization of a VaultAsset.
 // This custom unmarshalling is needed because the resulting
 // property may be an id or the full struct if it was expanded.
-func (c *VaultAsset) UnmarshalJSON(data []byte) error {
-	type va VaultAsset
+func (c *AssetResponse) UnmarshalJSON(data []byte) error {
+	type va AssetResponse
 	var v va
 	if err := json.Unmarshal(data, &v); err != nil {
 		return err
 	}
-	*c = VaultAsset(v)
+	*c = AssetResponse(v)
 
 	return nil
 }

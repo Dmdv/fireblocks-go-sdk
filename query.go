@@ -21,6 +21,10 @@ func (e QueryItem) String() string {
 // BuildQuery uses `env` and `envDefault` as tag to bind config to viper bindings
 // Example: `env:"USERNAME" envDefault:"admin"`
 func BuildQuery(in any) QueryItems {
+	if in == nil || reflect.ValueOf(in).IsNil() {
+		return nil
+	}
+
 	var vars QueryItems
 	var t = reflect.TypeOf(in)
 	var kind = t.Kind()
@@ -40,7 +44,9 @@ func (items QueryItems) UrlValues() url.Values {
 	values := make(url.Values, len(items))
 
 	for _, val := range items {
-		values.Add(normalize(val.Key, val.Value))
+		if val.Value != "" {
+			values.Add(normalize(val.Key, val.Value))
+		}
 	}
 
 	return values
