@@ -101,8 +101,18 @@ func (sdk *FireblocksSDK) GetVaultAccountsWithPageInfo(q *PagedVaultAccountsRequ
 	return resp, errors.Wrap(err, "failed to make request")
 }
 
-func (sdk *FireblocksSDK) GetVaultAccountsByID(accountID string) (resp *VaultAccountResponse, err error) {
-	body, status, err := sdk.client.DoGetRequest(fmt.Sprintf("/vault/accounts/%s", accountID), nil)
+func (sdk *FireblocksSDK) GetVaultAccountsByID(vaultAccountID string) (resp *VaultAccountResponse, err error) {
+	body, status, err := sdk.client.DoGetRequest(fmt.Sprintf("/vault/accounts/%s", vaultAccountID), nil)
+	if err == nil && status == http.StatusOK {
+		err = json.Unmarshal(body, &resp)
+		return
+	}
+
+	return resp, errors.Wrap(err, "failed to make request")
+}
+
+func (sdk *FireblocksSDK) GetVaultAccountAsset(vaultAccountID, assetID string) (resp *AssetResponse, err error) {
+	body, status, err := sdk.client.DoGetRequest(fmt.Sprintf("/vault/accounts/%s/%s", vaultAccountID, assetID), nil)
 	if err == nil && status == http.StatusOK {
 		err = json.Unmarshal(body, &resp)
 		return

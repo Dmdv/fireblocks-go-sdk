@@ -90,7 +90,7 @@ type AssetResponse struct {
 	RewardsInfo          *RewardsInfo        `json:"rewardsInfo,omitempty"`
 	SelfStakedCPU        *string             `json:"selfStakedCPU,omitempty"`      // Deprecated
 	SelfStakedNetwork    *string             `json:"selfStakedNetwork,omitempty"`  // Deprecated
-	Staked               string              `json:"staked,omitempty"`             // Staked balance
+	Staked               string              `json:"staked,omitempty"`             // Staked funds, returned only for DOT
 	TotalStakedCPU       *string             `json:"totalStakedCPU,omitempty"`     // Deprecated
 	TotalStakedNetwork   *string             `json:"totalStakedNetwork,omitempty"` // Deprecated
 }

@@ -158,9 +158,6 @@ func (suite *SDKSuite) TestAccountsPagedFilters() {
 	require.Equal(suite.T(), 1, len(accounts2.Accounts))
 	require.NotEmpty(suite.T(), accounts2.NextUrl)
 
-	// Before and after links
-	//require.Equal(suite.T(), accounts1.NextUrl, accounts2.PreviousUrl)
-
 	require.Contains(suite.T(), accounts1.NextUrl, accounts1.Paging.After)
 	require.Contains(suite.T(), accounts2.PreviousUrl, accounts1.Paging.Before)
 	require.Equal(suite.T(), accounts1.Paging.After, accounts1.Paging.After)
@@ -180,11 +177,21 @@ func (suite *SDKSuite) TestAccountsPagedFilters() {
 	require.Equal(suite.T(), id, actual)
 }
 
-func (suite *SDKSuite) TestAccountsByID() {
+func (suite *SDKSuite) TestGetAccountsByID() {
 	time.Sleep(time.Millisecond * 100)
 
 	accounts, err := suite.sdk.GetVaultAccountsByID("256")
 	require.NoError(suite.T(), err)
 	require.NotNil(suite.T(), accounts)
 	require.Equal(suite.T(), "256", accounts.ID)
+}
+
+func (suite *SDKSuite) TestGetAccountAsset() {
+	time.Sleep(time.Millisecond * 100)
+
+	asset, err := suite.sdk.GetVaultAccountAsset("60", "DAI_UNI_TEST")
+	require.NoError(suite.T(), err)
+	require.NotNil(suite.T(), asset)
+
+	require.Equal(suite.T(), asset.Id, "DAI_UNI_TEST")
 }
