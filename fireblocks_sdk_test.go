@@ -222,3 +222,11 @@ func (suite *SDKSuite) TestGetUnspentInputs() {
 	require.NoError(suite.T(), err)
 	require.NotNil(suite.T(), asset)
 }
+
+func (suite *SDKSuite) TestGetVaultPublicKey() {
+	time.Sleep(time.Millisecond * 100)
+
+	pk, err := suite.sdk.GetPublicKeyInfoForVaultAccount("265", "ETH_TEST", 1, 0)
+	require.NoError(suite.T(), err)
+	require.NotNil(suite.T(), pk)
+}

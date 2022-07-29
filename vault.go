@@ -104,6 +104,31 @@ type DepositAddressResponse struct {
 	Bip44AddressIndex int    `json:"bip44AddressIndex,omitempty"` // [optional] The address_index, addressFormat, and enterpriseAddress in the derivation path of this address based on BIP44
 }
 
+/*
+export interface PublicKeyInfoForVaultAccountArgs {
+    assetId: string;
+    vaultAccountId: number;
+    change: number;
+    addressIndex: number;
+    compressed?: boolean;
+}
+*/
+
+/*type PublicKeyInfoForVaultAccountArgs struct {
+	AssetId        string // The ID of the asset
+	VaultAccountId int64  // The ID of the vault account which address should be retrieved, or 'default' for the default vault account
+	Change         int64  // Whether the address should be derived internal (change) or not
+	AddressIndex   int64  // The index of the address for the derivation path
+	Compressed     bool   // Boolean, whether the returned key should be in compressed format or not, false by default
+}*/
+
+type PublicKeyInfoResponse struct {
+	Status         int     `json:"status,omitempty"`
+	PublicKey      string  `json:"publicKey,omitempty"`
+	Algorithm      string  `json:"algorithm,omitempty"`
+	DerivationPath []int64 `json:"derivationPath,omitempty"`
+}
+
 // GetVaultAccounts Deprecated, Gets all assets that are currently supported by Fireblocks,
 func (sdk *FireblocksSDK) GetVaultAccounts(q *VaultAccountsFilter) (resp []*VaultAccountResponse, err error) {
 	query := BuildQuery(q).URLValues()
@@ -182,6 +207,27 @@ func (sdk *FireblocksSDK) GetDepositAddresses(vaultAccountID, assetID string) (r
 // assetId - The ID of the asset for which to get the utxo list
 func (sdk *FireblocksSDK) GetUnspentInputs(vaultAccountID, assetID string) (resp []DepositAddressResponse, err error) {
 	body, status, err := sdk.client.DoGetRequest(fmt.Sprintf("/vault/accounts/%s/%s/unspent_inputs", vaultAccountID, assetID), nil)
+	if err == nil && status == http.StatusOK {
+		err = json.Unmarshal(body, &resp)
+		return
+	}
+
+	return resp, errors.Wrap(err, "failed to make request")
+}
+
+// GetPublicKeyInfoForVaultAccount Get the public key information for a vault account
+func (sdk *FireblocksSDK) GetPublicKeyInfoForVaultAccount(
+	vaultAccountID, assetID string,
+	change int,
+	addressIndex int,
+) (resp *PublicKeyInfoResponse, err error) {
+	body, status, err := sdk.client.DoGetRequest(fmt.Sprintf(
+		"/vault/accounts/%s/%s/%v/%v/public_key_info",
+		vaultAccountID,
+		assetID,
+		change,
+		addressIndex,
+	), nil)
 	if err == nil && status == http.StatusOK {
 		err = json.Unmarshal(body, &resp)
 		return
