@@ -206,3 +206,19 @@ func (suite *SDKSuite) TestGetAccountAssetAddress() {
 	require.Equal(suite.T(), "DAI_UNI_TEST", asset[0].AssetID)
 	require.NotEmpty(suite.T(), asset[0].Address)
 }
+
+func (suite *SDKSuite) TestGetUnspentInputs() {
+	time.Sleep(time.Millisecond * 100)
+
+	q := &sdk.VaultAccountsFilter{
+		AssetID: "BTC_TEST",
+	}
+
+	accounts, err := suite.sdk.GetVaultAccounts(q)
+	require.NoError(suite.T(), err)
+	require.Greater(suite.T(), len(accounts), 1)
+
+	asset, err := suite.sdk.GetUnspentInputs(accounts[0].ID, accounts[0].Assets[0].ID)
+	require.NoError(suite.T(), err)
+	require.NotNil(suite.T(), asset)
+}

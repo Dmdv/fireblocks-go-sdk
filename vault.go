@@ -151,8 +151,22 @@ func (sdk *FireblocksSDK) GetVaultAccountAsset(vaultAccountID, assetID string) (
 }
 
 // GetDepositAddresses Retrieves a wallet of a specific asset under a Fireblocks Vault Account.
-func (sdk *FireblocksSDK) GetDepositAddresses(vaultAccountID, assetID string) (resp []DepositAddressResponse, err error) {
+func (sdk *FireblocksSDK) GetDepositAddresses(vaultAccountID, assetID string) (resp []*DepositAddressResponse, err error) {
 	body, status, err := sdk.client.DoGetRequest(fmt.Sprintf("/vault/accounts/%s/%s/addresses", vaultAccountID, assetID), nil)
+	if err == nil && status == http.StatusOK {
+		err = json.Unmarshal(body, &resp)
+		return
+	}
+
+	return resp, errors.Wrap(err, "failed to make request")
+}
+
+// GetUnspentInputs Returns unspent inputs of the requested asset in the Vault Account.
+// Gets utxo list for an asset in a vault account
+// vaultAccountId - The vault account ID
+// assetId - The ID of the asset for which to get the utxo list
+func (sdk *FireblocksSDK) GetUnspentInputs(vaultAccountID, assetID string) (resp []DepositAddressResponse, err error) {
+	body, status, err := sdk.client.DoGetRequest(fmt.Sprintf("/vault/accounts/%s/%s/unspent_inputs", vaultAccountID, assetID), nil)
 	if err == nil && status == http.StatusOK {
 		err = json.Unmarshal(body, &resp)
 		return
