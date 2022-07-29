@@ -73,8 +73,8 @@ type PagedVaultAccountsResponse struct {
 		Before string `json:"before,omitempty"`
 		After  string `json:"after,omitempty"`
 	} `json:"paging"`
-	PreviousUrl string `json:"previousUrl,omitempty"`
-	NextUrl     string `json:"nextUrl,omitempty"`
+	PreviousURL string `json:"previousUrl,omitempty"`
+	NextURL     string `json:"nextUrl,omitempty"`
 }
 
 // GetVaultAccounts Deprecated, Gets all assets that are currently supported by Fireblocks,
@@ -90,6 +90,7 @@ func (sdk *FireblocksSDK) GetVaultAccounts(q *VaultAccountsFilter) (resp []*Vaul
 }
 
 // GetVaultAccountsWithPageInfo Gets all assets that are currently supported by Fireblocks
+// Retrieves all vault accounts in your workspace. This endpoint returns a limited amount of results and quick response time.
 func (sdk *FireblocksSDK) GetVaultAccountsWithPageInfo(q *PagedVaultAccountsRequestFilters) (resp *PagedVaultAccountsResponse, err error) {
 	query := BuildQuery(q).URLValues()
 	body, status, err := sdk.client.DoGetRequest("/vault/accounts_paged", query)
@@ -111,6 +112,7 @@ func (sdk *FireblocksSDK) GetVaultAccountsByID(vaultAccountID string) (resp *Vau
 	return resp, errors.Wrap(err, "failed to make request")
 }
 
+// GetVaultAccountAsset Retrieves a wallet of a specific asset under a Fireblocks Vault Account.
 func (sdk *FireblocksSDK) GetVaultAccountAsset(vaultAccountID, assetID string) (resp *AssetResponse, err error) {
 	body, status, err := sdk.client.DoGetRequest(fmt.Sprintf("/vault/accounts/%s/%s", vaultAccountID, assetID), nil)
 	if err == nil && status == http.StatusOK {

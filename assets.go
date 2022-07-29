@@ -1,7 +1,7 @@
 package fireblocksdk
 
 type AssetTypeResponse struct {
-	id              string
+	ID              string
 	name            string
 	assetType       string
 	contractAddress string
@@ -75,7 +75,7 @@ export interface AssetResponse {
 
 // AssetResponse defines model for VaultAsset.
 type AssetResponse struct {
-	Id                   string              `json:"id,omitempty"`
+	ID                   string              `json:"id,omitempty"`
 	Total                string              `json:"total,omitempty"`   // The total wallet balance. In EOS this value includes the network balance, self staking and pending refund. For all other coins it is the balance as it appears on the blockchain.
 	Balance              *string             `json:"balance,omitempty"` // Deprecated - replaced by "total"
 	AllocatedBalances    *[]AllocatedBalance `json:"allocatedBalances,omitempty"`

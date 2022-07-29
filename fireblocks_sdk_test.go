@@ -27,7 +27,7 @@ type SDKSuite struct {
 func (suite *SDKSuite) SetupTest() {
 	viper.AutomaticEnv()
 	viper.SetConfigFile("env.yaml")
-	viper.ReadInConfig()
+	_ = viper.ReadInConfig()
 
 	suite.baseURL = "https://api.fireblocks.io"
 	suite.apiKey = viper.GetString("apikey")
@@ -142,7 +142,7 @@ func (suite *SDKSuite) TestAccountsPagedFilters() {
 	require.NoError(suite.T(), err)
 	require.NotNil(suite.T(), accounts1)
 	require.Equal(suite.T(), 1, len(accounts1.Accounts))
-	require.NotEmpty(suite.T(), accounts1.NextUrl)
+	require.NotEmpty(suite.T(), accounts1.NextURL)
 
 	qsecond := &sdk.PagedVaultAccountsRequestFilters{
 		Limit: 1,
@@ -156,10 +156,10 @@ func (suite *SDKSuite) TestAccountsPagedFilters() {
 	require.NoError(suite.T(), err)
 	require.NotNil(suite.T(), accounts2)
 	require.Equal(suite.T(), 1, len(accounts2.Accounts))
-	require.NotEmpty(suite.T(), accounts2.NextUrl)
+	require.NotEmpty(suite.T(), accounts2.NextURL)
 
-	require.Contains(suite.T(), accounts1.NextUrl, accounts1.Paging.After)
-	require.Contains(suite.T(), accounts2.PreviousUrl, accounts1.Paging.Before)
+	require.Contains(suite.T(), accounts1.NextURL, accounts1.Paging.After)
+	require.Contains(suite.T(), accounts2.PreviousURL, accounts1.Paging.Before)
 	require.Equal(suite.T(), accounts1.Paging.After, accounts1.Paging.After)
 	require.Equal(suite.T(), accounts1.Paging.Before, accounts1.Paging.Before)
 
@@ -193,5 +193,5 @@ func (suite *SDKSuite) TestGetAccountAsset() {
 	require.NoError(suite.T(), err)
 	require.NotNil(suite.T(), asset)
 
-	require.Equal(suite.T(), asset.Id, "DAI_UNI_TEST")
+	require.Equal(suite.T(), asset.ID, "DAI_UNI_TEST")
 }
