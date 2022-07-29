@@ -63,3 +63,15 @@ func (sdk *FireblocksSDK) GetVaultAccounts(q *VaultAccountsFilter) (resp []*Vaul
 
 	return resp, errors.Wrap(err, "failed to make request")
 }
+
+// GetVaultAccountsWithPageInfo Gets all assets that are currently supported by Fireblocks
+func (sdk *FireblocksSDK) GetVaultAccountsWithPageInfo(q *VaultAccountsFilter) (resp []*VaultAccountResponse, err error) {
+	query := BuildQuery(q).UrlValues()
+	body, status, err := sdk.client.DoGetRequest("/vault/accounts", query)
+	if err == nil && status == http.StatusOK {
+		err = json.Unmarshal(body, &resp)
+		return
+	}
+
+	return resp, errors.Wrap(err, "failed to make request")
+}
