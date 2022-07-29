@@ -1,7 +1,5 @@
 package fireblocksdk
 
-import "encoding/json"
-
 type AssetTypeResponse struct {
 	id              string
 	name            string
@@ -95,18 +93,4 @@ type AssetResponse struct {
 	Staked               string              `json:"staked,omitempty"`             // Staked balance
 	TotalStakedCPU       *string             `json:"totalStakedCPU,omitempty"`     // Deprecated
 	TotalStakedNetwork   *string             `json:"totalStakedNetwork,omitempty"` // Deprecated
-}
-
-// UnmarshalJSON handles deserialization of a VaultAsset.
-// This custom unmarshalling is needed because the resulting
-// property may be an id or the full struct if it was expanded.
-func (c *AssetResponse) UnmarshalJSON(data []byte) error {
-	type va AssetResponse
-	var v va
-	if err := json.Unmarshal(data, &v); err != nil {
-		return err
-	}
-	*c = AssetResponse(v)
-
-	return nil
 }

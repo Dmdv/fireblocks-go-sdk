@@ -120,3 +120,44 @@ func (suite *SDKSuite) TestAccountsTotalAmountFilters() {
 	require.NotNil(suite.T(), accounts)
 	require.Greater(suite.T(), len(accounts), 0)
 }
+
+func (suite *SDKSuite) TestAccountsPagedFilters() {
+	qfirst := &sdk.PagedVaultAccountsRequestFilters{
+		Limit: 1,
+	}
+
+	accounts1, err := suite.sdk.GetVaultAccountsWithPageInfo(qfirst)
+	require.NoError(suite.T(), err)
+	require.NotNil(suite.T(), accounts1)
+	require.Equal(suite.T(), 1, len(accounts1.Accounts))
+	require.NotEmpty(suite.T(), accounts1.NextUrl)
+
+	qsecond := &sdk.PagedVaultAccountsRequestFilters{
+		Limit:  1,
+		Before: accounts1.Paging.After,
+	}
+
+	accounts2, err := suite.sdk.GetVaultAccountsWithPageInfo(qsecond)
+	require.NotEqual(suite.T(), accounts1.Accounts[0].ID, accounts2.Accounts[0].ID)
+	require.NoError(suite.T(), err)
+	require.NotNil(suite.T(), accounts2)
+	require.Equal(suite.T(), 1, len(accounts2.Accounts))
+	require.NotEmpty(suite.T(), accounts2.NextUrl)
+
+	// Before and after links
+	//require.Equal(suite.T(), accounts1.NextUrl, accounts2.PreviousUrl)
+
+	require.Contains(suite.T(), accounts1.NextUrl, accounts1.Paging.After)
+	require.Contains(suite.T(), accounts2.PreviousUrl, accounts1.Paging.Before)
+	require.Equal(suite.T(), accounts1.Paging.After, accounts1.Paging.After)
+	require.Equal(suite.T(), accounts1.Paging.Before, accounts1.Paging.Before)
+
+	qthird := &sdk.PagedVaultAccountsRequestFilters{
+		Limit:  1,
+		Before: accounts2.Paging.Before,
+	}
+
+	accounts3, err := suite.sdk.GetVaultAccountsWithPageInfo(qthird)
+	require.NoError(suite.T(), err)
+	require.Equal(suite.T(), accounts3.Accounts[0].ID, accounts1.Accounts[0].ID)
+}

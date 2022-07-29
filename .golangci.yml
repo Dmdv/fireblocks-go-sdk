@@ -75,5 +75,4 @@ linters:
     - dupl
     - gochecknoglobals
     - gci # add by file watchers
-    - goimports
 
