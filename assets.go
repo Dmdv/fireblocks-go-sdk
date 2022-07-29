@@ -2,11 +2,11 @@ package fireblocksdk
 
 type AssetTypeResponse struct {
 	ID              string
-	name            string
-	assetType       string
-	contractAddress string
-	nativeAsset     string
-	decimals        *int64
+	Name            string
+	AssetType       string
+	ContractAddress string
+	NativeAsset     string
+	Cecimals        *int64
 }
 
 // CreateVaultAssetResponse defines model for CreateVaultAssetResponse.

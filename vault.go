@@ -97,7 +97,7 @@ type DepositAddressResponse struct {
 	Tag               string `json:"tag,omitempty"`               // Destination tag for XRP, used as memo for EOS/XLM, for the fiat providers (Signet by Signature, SEN by Silvergate, BLINC by BCB Group), it is the Bank Transfer Description
 	Description       string `json:"description,omitempty"`       // Description of the address
 	TypeAddress       string `json:"type,omitempty"`              // Address type
-	CustomerRefId     string `json:"customerRefId,omitempty"`     // [optional] The ID for AML providers to associate the owner of funds with transactions
+	CustomerRefID     string `json:"customerRefId,omitempty"`     // [optional] The ID for AML providers to associate the owner of funds with transactions
 	LegacyAddress     string `json:"legacyAddress,omitempty"`     // For BTC/LTC/BCH the legacy format address
 	AddressFormat     string `json:"addressFormat,omitempty"`     //
 	EnterpriseAddress string `json:"enterpriseAddress,omitempty"` //
@@ -160,6 +160,21 @@ func (sdk *FireblocksSDK) GetDepositAddresses(vaultAccountID, assetID string) (r
 
 	return resp, errors.Wrap(err, "failed to make request")
 }
+
+// Response type supposed to be this -test it
+
+/*
+{
+    "input": {
+        "txHash": "string",
+        "index": "number"
+    },
+    "address": "string",
+    "amount": "string",
+    "confirmations": "number",
+    "status": "string"
+}
+*/
 
 // GetUnspentInputs Returns unspent inputs of the requested asset in the Vault Account.
 // Gets utxo list for an asset in a vault account
