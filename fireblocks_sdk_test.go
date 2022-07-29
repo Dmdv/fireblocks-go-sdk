@@ -179,3 +179,12 @@ func (suite *SDKSuite) TestAccountsPagedFilters() {
 	actual := accounts1.Accounts[0].ID
 	require.Equal(suite.T(), id, actual)
 }
+
+func (suite *SDKSuite) TestAccountsByID() {
+	time.Sleep(time.Millisecond * 100)
+
+	accounts, err := suite.sdk.GetVaultAccountsByID("256")
+	require.NoError(suite.T(), err)
+	require.NotNil(suite.T(), accounts)
+	require.Equal(suite.T(), "256", accounts.ID)
+}

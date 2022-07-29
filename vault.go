@@ -2,6 +2,7 @@ package fireblocksdk
 
 import (
 	"encoding/json"
+	"fmt"
 	"net/http"
 
 	"github.com/pkg/errors"
@@ -92,6 +93,16 @@ func (sdk *FireblocksSDK) GetVaultAccounts(q *VaultAccountsFilter) (resp []*Vaul
 func (sdk *FireblocksSDK) GetVaultAccountsWithPageInfo(q *PagedVaultAccountsRequestFilters) (resp *PagedVaultAccountsResponse, err error) {
 	query := BuildQuery(q).UrlValues()
 	body, status, err := sdk.client.DoGetRequest("/vault/accounts_paged", query)
+	if err == nil && status == http.StatusOK {
+		err = json.Unmarshal(body, &resp)
+		return
+	}
+
+	return resp, errors.Wrap(err, "failed to make request")
+}
+
+func (sdk *FireblocksSDK) GetVaultAccountsByID(accountID string) (resp *VaultAccountResponse, err error) {
+	body, status, err := sdk.client.DoGetRequest(fmt.Sprintf("/vault/accounts/%s", accountID), nil)
 	if err == nil && status == http.StatusOK {
 		err = json.Unmarshal(body, &resp)
 		return
