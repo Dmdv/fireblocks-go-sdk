@@ -63,7 +63,7 @@ func (api *APIClient) makeRequest(method, path string, body interface{}) ([]byte
 		return nil, status, errors.Wrap(err, "failed to create request")
 	}
 
-	req.Header.Add("X-API-Key", api.auth.GetApiKey())
+	req.Header.Add("X-API-Key", api.auth.GetAPIKey())
 	req.Header.Add("Authorization", fmt.Sprintf(`Bearer %s`, jwtToken))
 	req.Header.Set("Content-Type", "application/json; charset=UTF-8")
 

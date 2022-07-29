@@ -36,7 +36,7 @@ func TestSignerSuite(t *testing.T) {
 func (suite *SignerSuite) SetupTest() {
 	viper.AutomaticEnv()
 	viper.SetConfigFile("env.yaml")
-	viper.ReadInConfig()
+	_ = viper.ReadInConfig()
 
 	suite.url = "/v1/supported_assets"
 	suite.baseURL = "https://api.fireblocks.io"

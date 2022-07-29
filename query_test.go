@@ -44,7 +44,7 @@ func (suite *QuerySuite) TestMustConvertToValueFromStruct() {
 
 func (suite *QuerySuite) TestMustConvertUrlValuesFromStruct() {
 	values := sdk.BuildQuery(suite.str)
-	query := values.UrlValues()
+	query := values.URLValues()
 
 	require.NotEmpty(suite.T(), query)
 	require.Equal(suite.T(), 3, len(query))
@@ -72,7 +72,7 @@ func (suite *QuerySuite) TestMustConvertToValueFromPointer() {
 
 func (suite *QuerySuite) TestMustConvertUrlValuesFromPointer() {
 	values := sdk.BuildQuery(suite.pt)
-	query := values.UrlValues()
+	query := values.URLValues()
 
 	require.NotEmpty(suite.T(), query)
 	require.Equal(suite.T(), 3, len(query))

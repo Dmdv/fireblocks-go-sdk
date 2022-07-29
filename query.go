@@ -40,7 +40,7 @@ func BuildQuery(in any) QueryItems {
 	return vars
 }
 
-func (items QueryItems) UrlValues() url.Values {
+func (items QueryItems) URLValues() url.Values {
 	values := make(url.Values, len(items))
 
 	for _, val := range items {

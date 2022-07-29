@@ -66,5 +66,5 @@ func (suite *AuthTokenSuite) TestTimeProvider() {
 }
 
 func (suite *AuthTokenSuite) TestGetApiKey() {
-	require.Equal(suite.T(), suite.auth.GetApiKey(), suite.apiKey)
+	require.Equal(suite.T(), suite.auth.GetAPIKey(), suite.apiKey)
 }

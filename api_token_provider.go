@@ -23,7 +23,7 @@ func DefaultTokenExpiry() int64 {
 
 type IAuthProvider interface {
 	SignJwt(path string, bodyJSON []byte) (string, error)
-	GetApiKey() string
+	GetAPIKey() string
 }
 
 type AuthProviderConfig struct {
@@ -94,7 +94,7 @@ func (ap *AuthProvider) SignJwt(path string, bodyJSON []byte) (string, error) {
 	return jwtToken, err
 }
 
-func (ap *AuthProvider) GetApiKey() string {
+func (ap *AuthProvider) GetAPIKey() string {
 	return ap.apiKey
 }
 

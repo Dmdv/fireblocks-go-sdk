@@ -79,7 +79,7 @@ type PagedVaultAccountsResponse struct {
 
 // GetVaultAccounts Deprecated, Gets all assets that are currently supported by Fireblocks,
 func (sdk *FireblocksSDK) GetVaultAccounts(q *VaultAccountsFilter) (resp []*VaultAccountResponse, err error) {
-	query := BuildQuery(q).UrlValues()
+	query := BuildQuery(q).URLValues()
 	body, status, err := sdk.client.DoGetRequest("/vault/accounts", query)
 	if err == nil && status == http.StatusOK {
 		err = json.Unmarshal(body, &resp)
@@ -91,7 +91,7 @@ func (sdk *FireblocksSDK) GetVaultAccounts(q *VaultAccountsFilter) (resp []*Vaul
 
 // GetVaultAccountsWithPageInfo Gets all assets that are currently supported by Fireblocks
 func (sdk *FireblocksSDK) GetVaultAccountsWithPageInfo(q *PagedVaultAccountsRequestFilters) (resp *PagedVaultAccountsResponse, err error) {
-	query := BuildQuery(q).UrlValues()
+	query := BuildQuery(q).URLValues()
 	body, status, err := sdk.client.DoGetRequest("/vault/accounts_paged", query)
 	if err == nil && status == http.StatusOK {
 		err = json.Unmarshal(body, &resp)
