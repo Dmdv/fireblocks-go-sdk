@@ -195,3 +195,14 @@ func (suite *SDKSuite) TestGetAccountAsset() {
 
 	require.Equal(suite.T(), asset.ID, "DAI_UNI_TEST")
 }
+
+func (suite *SDKSuite) TestGetAccountAssetAddress() {
+	time.Sleep(time.Millisecond * 100)
+
+	asset, err := suite.sdk.GetDepositAddresses("60", "DAI_UNI_TEST")
+	require.NoError(suite.T(), err)
+	require.NotNil(suite.T(), asset)
+
+	require.Equal(suite.T(), "DAI_UNI_TEST", asset[0].AssetID)
+	require.NotEmpty(suite.T(), asset[0].Address)
+}

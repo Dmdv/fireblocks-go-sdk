@@ -77,6 +77,33 @@ type PagedVaultAccountsResponse struct {
 	NextURL     string `json:"nextUrl,omitempty"`
 }
 
+/*
+export interface DepositAddressResponse {
+    assetId: string;
+    address: string;
+    tag?: string;
+    description?: string;
+    type: string;
+    customerRefId?: string;
+    addressFormat: string;
+    legacyAddress?: string;
+    enterpriseAddress?: string;
+}
+*/
+
+type DepositAddressResponse struct {
+	AssetID           string `json:"assetId,omitempty"`           // The ID of the asset
+	Address           string `json:"address,omitempty"`           // Address of the asset in a Vault Account, for BTC/LTC the address is in Segwit (Bech32) format, for BCH cash format
+	Tag               string `json:"tag,omitempty"`               // Destination tag for XRP, used as memo for EOS/XLM, for the fiat providers (Signet by Signature, SEN by Silvergate, BLINC by BCB Group), it is the Bank Transfer Description
+	Description       string `json:"description,omitempty"`       // Description of the address
+	TypeAddress       string `json:"type,omitempty"`              // Address type
+	CustomerRefId     string `json:"customerRefId,omitempty"`     // [optional] The ID for AML providers to associate the owner of funds with transactions
+	LegacyAddress     string `json:"legacyAddress,omitempty"`     // For BTC/LTC/BCH the legacy format address
+	AddressFormat     string `json:"addressFormat,omitempty"`     //
+	EnterpriseAddress string `json:"enterpriseAddress,omitempty"` //
+	Bip44AddressIndex int    `json:"bip44AddressIndex,omitempty"` // [optional] The address_index, addressFormat, and enterpriseAddress in the derivation path of this address based on BIP44
+}
+
 // GetVaultAccounts Deprecated, Gets all assets that are currently supported by Fireblocks,
 func (sdk *FireblocksSDK) GetVaultAccounts(q *VaultAccountsFilter) (resp []*VaultAccountResponse, err error) {
 	query := BuildQuery(q).URLValues()
@@ -115,6 +142,17 @@ func (sdk *FireblocksSDK) GetVaultAccountsByID(vaultAccountID string) (resp *Vau
 // GetVaultAccountAsset Retrieves a wallet of a specific asset under a Fireblocks Vault Account.
 func (sdk *FireblocksSDK) GetVaultAccountAsset(vaultAccountID, assetID string) (resp *AssetResponse, err error) {
 	body, status, err := sdk.client.DoGetRequest(fmt.Sprintf("/vault/accounts/%s/%s", vaultAccountID, assetID), nil)
+	if err == nil && status == http.StatusOK {
+		err = json.Unmarshal(body, &resp)
+		return
+	}
+
+	return resp, errors.Wrap(err, "failed to make request")
+}
+
+// GetDepositAddresses Retrieves a wallet of a specific asset under a Fireblocks Vault Account.
+func (sdk *FireblocksSDK) GetDepositAddresses(vaultAccountID, assetID string) (resp []DepositAddressResponse, err error) {
+	body, status, err := sdk.client.DoGetRequest(fmt.Sprintf("/vault/accounts/%s/%s/addresses", vaultAccountID, assetID), nil)
 	if err == nil && status == http.StatusOK {
 		err = json.Unmarshal(body, &resp)
 		return
