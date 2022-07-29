@@ -7,6 +7,7 @@ import (
 	"io/ioutil"
 	"log"
 	"net/http"
+	"net/url"
 	"strings"
 
 	"github.com/hashicorp/go-retryablehttp"
@@ -19,7 +20,7 @@ const (
 
 type IAPIClient interface {
 	DoPostRequest(path string, body interface{}) ([]byte, int, error)
-	DoGetRequest(path string) ([]byte, int, error)
+	DoGetRequest(path string, q url.Values) ([]byte, int, error)
 	DoPutRequest(path string, body interface{}) ([]byte, int, error)
 	DoDeleteRequest(path string) ([]byte, int, error)
 }
@@ -98,31 +99,37 @@ func (api *APIClient) makeRequest(method, path string, body interface{}) ([]byte
 }
 
 func (api *APIClient) DoPostRequest(path string, body interface{}) ([]byte, int, error) {
-	path = api.GetPath(path)
+	path = api.GetRelativePath(path)
 
 	return api.makeRequest(http.MethodPost, path, body)
 }
 
-func (api *APIClient) DoGetRequest(path string) ([]byte, int, error) {
+func (api *APIClient) DoGetRequest(path string, q url.Values) ([]byte, int, error) {
 	query := ""
-	path = api.GetPath(path)
+	path = api.GetRelativePath(path)
+
+	if q != nil {
+		query = q.Encode()
+		path = fmt.Sprintf(`%s?%s`, path, query)
+	}
 
 	return api.makeRequest(http.MethodGet, path, []byte(query))
 }
 
 func (api *APIClient) DoPutRequest(path string, body interface{}) ([]byte, int, error) {
-	path = api.GetPath(path)
+	path = api.GetRelativePath(path)
 
 	return api.makeRequest(http.MethodPut, path, body)
 }
 
 func (api *APIClient) DoDeleteRequest(path string) ([]byte, int, error) {
-	path = api.GetPath(path)
+	path = api.GetRelativePath(path)
 
 	return api.makeRequest(http.MethodDelete, path, nil)
 }
 
-func (api *APIClient) GetPath(path string) string {
+// GetRelativePath returns path without baseURL
+func (api *APIClient) GetRelativePath(path string) string {
 	return fmt.Sprintf(`/%s%s`, APIVERSION, path)
 }
 
