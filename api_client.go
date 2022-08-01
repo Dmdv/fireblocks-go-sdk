@@ -19,7 +19,7 @@ const (
 )
 
 type IAPIClient interface {
-	DoPostRequest(path string, body interface{}) ([]byte, int, error)
+	DoPostRequest(path string, body interface{}, opts ...func(*PostRequestOption)) ([]byte, int, error)
 	DoGetRequest(path string, q url.Values) ([]byte, int, error)
 	DoPutRequest(path string, body interface{}) ([]byte, int, error)
 	DoDeleteRequest(path string) ([]byte, int, error)
@@ -39,8 +39,9 @@ func NewAPIClient(auth IAuthProvider, baseURL string) *APIClient {
 
 func (api *APIClient) makeRequest(method, path string, body interface{}) ([]byte, int, error) {
 	var (
-		status   = http.StatusInternalServerError
-		bodyJSON = []byte("")
+		status     = http.StatusInternalServerError
+		bodyJSON   = []byte("")
+		requestErr error
 	)
 
 	if method != http.MethodGet && body != nil {
@@ -93,12 +94,21 @@ func (api *APIClient) makeRequest(method, path string, body interface{}) ([]byte
 		}
 
 		result = responseBody
+
+		if status >= 400 {
+			sdkErr := &sdkError{}
+			errM := json.Unmarshal(result, sdkErr)
+			if errM == nil {
+				sdkErr.Path = fmt.Sprintf("%s %s", method, path)
+				requestErr = sdkErr
+			}
+		}
 	}
 
-	return result, status, nil
+	return result, status, requestErr
 }
 
-func (api *APIClient) DoPostRequest(path string, body interface{}) ([]byte, int, error) {
+func (api *APIClient) DoPostRequest(path string, body interface{}, opts ...func(*PostRequestOption)) ([]byte, int, error) {
 	path = api.GetRelativePath(path)
 
 	return api.makeRequest(http.MethodPost, path, body)

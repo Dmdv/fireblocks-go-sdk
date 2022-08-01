@@ -2,6 +2,8 @@ package fireblocksdk_test
 
 import (
 	sdk "fireblocksdk"
+	"fmt"
+	"math/rand"
 	"testing"
 	"time"
 
@@ -226,7 +228,47 @@ func (suite *SDKSuite) TestGetUnspentInputs() {
 func (suite *SDKSuite) TestGetVaultPublicKey() {
 	time.Sleep(time.Millisecond * 100)
 
-	pk, err := suite.sdk.GetPublicKeyInfoForVaultAccount("265", "ETH_TEST", 1, 0)
+	pk, err := suite.sdk.GetPublicKeyInfoForVaultAccount("60", "DAI_UNI_TEST", 0, 0)
 	require.NoError(suite.T(), err)
 	require.NotNil(suite.T(), pk)
+}
+
+func (suite *SDKSuite) TestGenerateNewAddress() {
+	time.Sleep(time.Millisecond * 100)
+
+	description := fmt.Sprintf("Test at %v", time.Now())
+
+	resp, err := suite.sdk.GenerateNewAddress("60", "DAI_UNI_TEST", description, "")
+	require.NoError(suite.T(), err)
+	require.NotNil(suite.T(), resp)
+	require.NotEmpty(suite.T(), resp.Address)
+}
+
+func (suite *SDKSuite) TestCreateVaultAccount() {
+	time.Sleep(time.Millisecond * 500)
+
+	q := &sdk.VaultAccountsFilter{
+		NamePrefix: "Test_",
+	}
+
+	time.Sleep(time.Millisecond * 500)
+
+	accountsBefore, err := suite.sdk.GetVaultAccounts(q)
+	require.NoError(suite.T(), err)
+
+	name := fmt.Sprintf("Test_%v", rand.Int())
+
+	resp, err := suite.sdk.CreateVaultAccount(name, "", nil, nil)
+	require.NoError(suite.T(), err)
+	require.NotNil(suite.T(), resp)
+	require.NotEmpty(suite.T(), resp.Name)
+	require.NotEmpty(suite.T(), resp.ID)
+	require.Equal(suite.T(), name, resp.Name)
+
+	time.Sleep(time.Millisecond * 500)
+
+	accountsAfter, err := suite.sdk.GetVaultAccounts(q)
+	require.NoError(suite.T(), err)
+
+	require.Equal(suite.T(), len(accountsBefore), len(accountsAfter)-1)
 }
